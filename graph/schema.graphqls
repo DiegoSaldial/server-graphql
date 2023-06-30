@@ -1,0 +1,119 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+scalar time
+
+type Usuario{
+  id: ID!
+  nombres: String!
+  apellidos: String!
+  username: String!
+  foto_url: String
+  telefono: String
+  correo: String
+  registrado: time!
+  estado: Boolean! 
+} 
+
+type UsuarioLogin {
+  id: ID!
+  nombres: String!
+  apellidos: String!
+  username: String!
+  foto_url: String
+  telefono: String
+  correo: String
+  registrado: time!
+  estado: Boolean!
+  dataname: String!
+  rol_id: ID!
+  rol: String!
+  exp: String!
+} 
+
+type Rol { 
+  id: ID!
+  nombre: String!
+}
+
+type Tokens {
+  username: String!
+  token: String! 
+  registrado: time!
+}
+
+type RolPermiso {
+  metodo: String!
+  rol_bits: Int!
+}
+
+# ==============================================================================
+input NewUsuario { 
+  nombres: String!
+  apellidos: String!
+  username: String!
+  password: String
+  foto_url: String
+  telefono: String
+  correo: String
+  roles:[ID!]!
+} 
+
+input UpdateUsuario {
+  id: ID!
+  nombres: String!
+  apellidos: String!
+  username: String!
+  password: String
+  foto_url: String
+  telefono: String
+  correo: String
+  roles:[ID!]!
+} 
+
+# input RolPermiso {
+#   metodo: String!
+#   rol_bits: Int!
+# }
+
+input NewRol {
+  nombre: String! 
+  permisos: [String!]!
+}
+
+input NewRolPermiso {
+  metodo: ID!
+  roles: [ID!]!
+}
+# ==============================================================================
+
+
+
+# go run github.com/99designs/gqlgen generate
+type Query {
+  usuarioByUsername(username:String!): Usuario!
+  permisos:[RolPermiso!]!
+  roles:[Rol!]! 
+}
+
+
+
+# la logica es la sig:
+# primero te loqueas, esto devuelve un array de roles
+# segundo seleccionas el rol, esto recien crea el token para ese rol
+# tercero ya puedes usar las demas funciones
+type Mutation {
+  login(username:String!, password:String!): [Rol!]!
+  useRol(username:String!, password:String!, rol:ID!): UsuarioLogin!
+  createUsuario(input: NewUsuario!): Usuario! 
+  updateUsuario(input: UpdateUsuario!): Usuario! 
+  createRol(input: NewRol!): Rol!
+  deleteRol(rol:ID!): Boolean!
+  modificarRol(input: NewRol!): Rol!
+  crearNuevoPermiso(input:NewRolPermiso!): RolPermiso!
+  eliminarPermiso(metodo:String!): Boolean!
+  actualizarPermiso(input:NewRolPermiso!): RolPermiso!
+}
+
+

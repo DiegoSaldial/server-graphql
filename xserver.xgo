@@ -1,0 +1,67 @@
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"opentaxi/graph"
+	"opentaxi/mygrpc"
+	"os"
+
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
+	"google.golang.org/grpc"
+)
+
+// export PATH="$PATH:$(go env GOPATH)/bin"
+// protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative schema.proto
+
+type Servidor struct {
+	mygrpc.UnimplementedGreeterServer
+}
+
+func (s *Servidor) SayHello(ctx context.Context, in *mygrpc.HelloRequest) (*mygrpc.HelloReply, error) {
+	fmt.Println("Recibido", in.GetName())
+	nombre := "Hola " + in.GetName()
+	return &mygrpc.HelloReply{Message: nombre}, nil
+}
+
+func (s *Servidor) SayListas(ctx context.Context, in *mygrpc.ListasRequest) (*mygrpc.ListasReply, error) {
+	fmt.Println(">>", in.Nombres)
+	// res := "hol: " + strings.Join(in.Nombres, ",")
+	return &mygrpc.ListasReply{Nombres: in.Nombres}, nil
+}
+
+const defaultPort = "8080"
+
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	flag.Parse()
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", port))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	ser := &Servidor{}
+	mygrpc.RegisterGreeterServer(s, ser)
+	log.Printf("server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+	fmt.Println("ok")
+
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+
+	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	http.Handle("/query", srv)
+
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}

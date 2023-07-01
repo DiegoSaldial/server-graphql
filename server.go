@@ -10,7 +10,10 @@ import (
 	"net/http"
 	"opentaxi/database/auth/xauth"
 	"opentaxi/graph"
+	"opentaxi/gui"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -68,6 +71,18 @@ func main() {
 	}
 	router.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		gui.MainBeego()
+	}()
+
+	go func() {
+		log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+		log.Fatal(http.ListenAndServe(":"+port, router))
+	}()
+
+	<-stopChan
+	fmt.Println("fin del server.")
 }

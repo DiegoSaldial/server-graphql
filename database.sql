@@ -14,7 +14,6 @@ create table `usuarios`(
 create table `roles`(
     `id` integer unsigned not null auto_increment primary key,
     `nombre` varchar(30) not null unique
-    -- `rol_bit` tinyint(1) unsigned not null unique comment "debe ser una potencia de 2 si o si"
 );
 
 create table `rol_permiso`(

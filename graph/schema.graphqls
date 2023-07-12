@@ -92,8 +92,11 @@ input NewRolPermiso {
 
 # go run github.com/99designs/gqlgen generate
 type Query {
+  """ Retorna al usuario con el username proporcionados"""
   usuarioByUsername(username:String!): Usuario!
+  """ Retorna un listado de los permisos registrados """
   permisos:[RolPermiso!]!
+  """ Retorna un listado de los roles registrados """
   roles:[Rol!]! 
 }
 
@@ -104,15 +107,25 @@ type Query {
 # segundo seleccionas el rol, esto recien crea el token para ese rol
 # tercero ya puedes usar las demas funciones
 type Mutation {
+  """ Autentifica al usuario y retorna un listado de roles asignados a ese usuario """
   login(username:String!, password:String!): [Rol!]!
+  """ Autentifica al usuario usando el rol seleccionado """
   useRol(username:String!, password:String!, rol:ID!): UsuarioLogin!
+  """ Registra a un nuevo usuario en el sistema y retorna los datos del registro """
   createUsuario(input: NewUsuario!): Usuario! 
+  """ Actualiza a un usuario y retorna los datos actualizados """
   updateUsuario(input: UpdateUsuario!): Usuario! 
+  """ Registra un nuevo rol en el sistema y retorna los datos del registro """
   createRol(input: NewRol!): Rol!
+  """ elimina un rol registrado en el sistema """
   deleteRol(rol:ID!): Boolean!
+  """ Modifica los datos de un rol y retorna los datos modificados """
   modificarRol(input: NewRol!): Rol!
+  """ Registra un uevo permiso en el sistema y retorna el registrado """
   crearNuevoPermiso(input:NewRolPermiso!): RolPermiso!
+  """ Elimina un permiso del sistema """
   eliminarPermiso(metodo:String!): Boolean!
+  """ Actualiza los datos del permiso y retorna el registro """
   actualizarPermiso(input:NewRolPermiso!): RolPermiso!
 }
 
